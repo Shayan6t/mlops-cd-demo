@@ -56,17 +56,19 @@ jobs:
 
       - name: Build
         run: |
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
           docker build \
             --build-arg APP_VERSION=${{ steps.version.outputs.version }} \
             --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) \
-            -t ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }} \
-            -t ghcr.io/${{ github.repository }}:latest \
+            -t "${IMAGE_NAME}:${{ steps.version.outputs.version }}" \
+            -t "${IMAGE_NAME}:latest" \
             .
 
       - name: Push
         run: |
-          docker push ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
-          docker push ghcr.io/${{ github.repository }}:latest
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker push "${IMAGE_NAME}:${{ steps.version.outputs.version }}"
+          docker push "${IMAGE_NAME}:latest"
 
   deploy-staging:
     needs: build
@@ -79,8 +81,9 @@ jobs:
           STAGING_HOST: ${{ secrets.STAGING_HOST }}
           STAGING_USER: ${{ secrets.STAGING_USER }}
           STAGING_KEY: ${{ secrets.STAGING_SSH_KEY }}
-          IMAGE: ghcr.io/${{ github.repository }}:${{ needs.build.outputs.version }}
+          VERSION: ${{ needs.build.outputs.version }}
         run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${VERSION}"
           if [ -n "$STAGING_HOST" ] && [ -n "$STAGING_KEY" ]; then
             echo "Deploying to remote staging host $STAGING_HOST via SSH..."
             mkdir -p ~/.ssh
@@ -118,8 +121,9 @@ jobs:
           PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
           PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
           PRODUCTION_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
-          IMAGE: ghcr.io/${{ github.repository }}:${{ needs.build.outputs.version }}
+          VERSION: ${{ needs.build.outputs.version }}
         run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${VERSION}"
           if [ -n "$PRODUCTION_HOST" ] && [ -n "$PRODUCTION_KEY" ]; then
             echo "Deploying to remote production host $PRODUCTION_HOST via SSH..."
             mkdir -p ~/.ssh
