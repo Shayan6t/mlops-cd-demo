@@ -1,0 +1,16 @@
+services:
+  staging:
+    image: ghcr.io/shayan6t/mlops-cd-demo:latest
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
+    environment:
+      - MODEL_VERSION=1.0
+
+  production:
+    image: ghcr.io/shayan6t/mlops-cd-demo:latest
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    environment:
+      - MODEL_VERSION=1.0
